@@ -6,7 +6,6 @@
 <title>Teplota Dashboard</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     background: #0f1117;
@@ -14,48 +13,29 @@
     min-height: 100vh;
     padding: 24px 16px;
   }
-
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 24px;
   }
-
   header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
   .date-label { font-size: 12px; color: #555; }
-
   .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-bottom: 20px;
   }
-
   .card {
     background: #1a1d27;
     border: 1px solid #2a2d3a;
     border-radius: 14px;
     padding: 14px 16px;
   }
-
-  .card-label {
-    font-size: 11px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 6px;
-  }
-
-  .card-value {
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: #f0f2f8;
-  }
-
+  .card-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .card-value { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; color: #f0f2f8; }
   .card-value span { font-size: 14px; font-weight: 400; color: #888; }
-
   .chart-wrap {
     background: #1a1d27;
     border: 1px solid #2a2d3a;
@@ -63,60 +43,34 @@
     padding: 20px 16px 16px;
     margin-bottom: 20px;
   }
-
   .chart-title { font-size: 13px; color: #888; margin-bottom: 4px; }
   .chart-subtitle { font-size: 11px; color: #444; margin-bottom: 12px; }
-
   .tooltip-bar {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    min-height: 28px;
+    min-height: 32px;
     margin-bottom: 12px;
   }
-
-  .tooltip-time {
-    font-size: 12px;
-    color: #555;
-  }
-
-  .tooltip-val {
-    font-size: 22px;
-    font-weight: 600;
-    color: #378ADD;
-    letter-spacing: -0.5px;
-    transition: color 0.1s;
-  }
-
-  .tooltip-unit {
-    font-size: 13px;
-    color: #555;
-  }
-
-  .chart-svg-wrap {
+  .tooltip-time { font-size: 12px; color: #555; }
+  .tooltip-val { font-size: 24px; font-weight: 600; color: #378ADD; letter-spacing: -0.5px; }
+  .tooltip-unit { font-size: 13px; color: #555; }
+  canvas {
     width: 100%;
-    overflow: hidden;
+    height: 220px;
+    display: block;
     cursor: crosshair;
     touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
-
-  svg { width: 100%; display: block; }
-
   .raw-wrap {
     background: #1a1d27;
     border: 1px solid #2a2d3a;
     border-radius: 14px;
     padding: 14px 16px;
   }
-
-  .raw-label {
-    font-size: 11px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 8px;
-  }
-
+  .raw-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
   .raw-text {
     font-family: 'SF Mono', 'Courier New', monospace;
     font-size: 11px;
@@ -134,31 +88,20 @@
 </header>
 
 <div class="cards">
-  <div class="card">
-    <div class="card-label">Aktuálna</div>
-    <div class="card-value" id="current"></div>
-  </div>
-  <div class="card">
-    <div class="card-label">Min</div>
-    <div class="card-value" id="minVal"></div>
-  </div>
-  <div class="card">
-    <div class="card-label">Max</div>
-    <div class="card-value" id="maxVal"></div>
-  </div>
+  <div class="card"><div class="card-label">Aktuálna</div><div class="card-value" id="current"></div></div>
+  <div class="card"><div class="card-label">Min</div><div class="card-value" id="minVal"></div></div>
+  <div class="card"><div class="card-label">Max</div><div class="card-value" id="maxVal"></div></div>
 </div>
 
 <div class="chart-wrap">
   <div class="chart-title">Teplota počas dňa</div>
   <div class="chart-subtitle">48 vzoriek · interval 30 minút · ťahaj prstom po grafe</div>
   <div class="tooltip-bar">
-    <span class="tooltip-time" id="tipTime">—</span>
-    <span class="tooltip-val" id="tipVal">—</span>
+    <span class="tooltip-time" id="tipTime"></span>
+    <span class="tooltip-val" id="tipVal"></span>
     <span class="tooltip-unit" id="tipUnit"></span>
   </div>
-  <div class="chart-svg-wrap" id="svgWrap">
-    <svg id="chart" viewBox="0 0 700 240" preserveAspectRatio="none"></svg>
-  </div>
+  <canvas id="chart"></canvas>
 </div>
 
 <div class="raw-wrap">
@@ -168,131 +111,176 @@
 
 <script>
 const temps = [
-  20.2, 19.8, 19.1, 18.5, 18.0, 17.6,
-  17.2, 16.9, 16.8, 17.1, 17.8, 18.9,
-  20.3, 21.8, 22.9, 23.8, 24.5, 25.1,
-  25.6, 25.9, 26.1, 26.0, 25.7, 25.2,
-  24.6, 23.9, 23.2, 22.5, 21.9, 21.4,
-  21.0, 20.7, 20.5, 20.3, 20.1, 20.0,
-  19.9, 19.8, 19.7, 19.9, 20.2, 20.5,
-  20.8, 21.0, 21.1, 20.9, 20.6, 20.3
+  20.2,19.8,19.1,18.5,18.0,17.6,17.2,16.9,16.8,17.1,17.8,18.9,
+  20.3,21.8,22.9,23.8,24.5,25.1,25.6,25.9,26.1,26.0,25.7,25.2,
+  24.6,23.9,23.2,22.5,21.9,21.4,21.0,20.7,20.5,20.3,20.1,20.0,
+  19.9,19.8,19.7,19.9,20.2,20.5,20.8,21.0,21.1,20.9,20.6,20.3
 ];
 
-const W = 700, H = 240;
-const padL = 44, padR = 12, padT = 12, padB = 36;
-const minT = 14, maxT = 28;
-const n = temps.length;
+const minT = 14, maxT = 28, n = temps.length;
+let activeIdx = n - 1;
 
-function tx(i) { return padL + (i / (n-1)) * (W - padL - padR); }
-function ty(v) { return padT + (1 - (v - minT) / (maxT - minT)) * (H - padT - padB); }
-
-const svg = document.getElementById('chart');
-const ns = 'http://www.w3.org/2000/svg';
-
-function el(tag, attrs, parent) {
-  const e = document.createElementNS(ns, tag);
-  for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v);
-  if (parent) parent.appendChild(e);
-  return e;
-}
-
-// grid y
-const gridTemps = [16, 18, 20, 22, 24, 26];
-for (const gt of gridTemps) {
-  const y = ty(gt);
-  el('line', { x1: padL, y1: y, x2: W-padR, y2: y, stroke: 'rgba(255,255,255,0.05)', 'stroke-width': 1 }, svg);
-  el('text', { x: padL-6, y: y+4, fill: '#555', 'font-size': '10', 'text-anchor': 'end', 'font-family': '-apple-system,sans-serif' }, svg).textContent = gt+'°';
-}
-
-// grid x
-for (let i = 0; i < n; i += 8) {
-  const x = tx(i);
-  el('line', { x1: x, y1: padT, x2: x, y2: H-padB, stroke: 'rgba(255,255,255,0.05)', 'stroke-width': 1 }, svg);
-  const h = Math.floor(i/2).toString().padStart(2,'0');
-  el('text', { x: x, y: H-padB+14, fill: '#555', 'font-size': '10', 'text-anchor': 'middle', 'font-family': '-apple-system,sans-serif' }, svg).textContent = h+':00';
-}
-
-// fill
-const fillPath = 'M '+tx(0)+','+ty(temps[0])+' '+
-  temps.map((v,i) => 'L '+tx(i)+','+ty(v)).join(' ')+
-  ' L '+tx(n-1)+','+(H-padB)+' L '+tx(0)+','+(H-padB)+' Z';
-el('path', { d: fillPath, fill: 'rgba(55,138,221,0.10)', stroke: 'none' }, svg);
-
-// line
-const linePath = 'M '+temps.map((v,i) => tx(i)+','+ty(v)).join(' L ');
-el('path', { d: linePath, fill: 'none', stroke: '#378ADD', 'stroke-width': '2', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
-
-// dots (small)
-const dotsGroup = el('g', {}, svg);
-for (let i = 0; i < n; i++) {
-  el('circle', { cx: tx(i), cy: ty(temps[i]), r: '2', fill: '#378ADD', opacity: '0.7' }, dotsGroup);
-}
-
-// crosshair elements
-const crossLine = el('line', { x1: 0, y1: padT, x2: 0, y2: H-padB, stroke: '#ffffff', 'stroke-width': '1', opacity: '0.3', display: 'none' }, svg);
-const crossDot = el('circle', { cx: 0, cy: 0, r: '5', fill: '#378ADD', stroke: '#ffffff', 'stroke-width': '2', display: 'none' }, svg);
-
-// cards
-const cur = temps[temps.length-1];
-const mn = Math.min(...temps);
-const mx = Math.max(...temps);
-document.getElementById('current').innerHTML = cur.toFixed(1)+'<span>°C</span>';
-document.getElementById('minVal').innerHTML = mn.toFixed(1)+'<span>°C</span>';
-document.getElementById('maxVal').innerHTML = mx.toFixed(1)+'<span>°C</span>';
+document.getElementById('current').innerHTML = temps[n-1].toFixed(1)+'<span>°C</span>';
+document.getElementById('minVal').innerHTML = Math.min(...temps).toFixed(1)+'<span>°C</span>';
+document.getElementById('maxVal').innerHTML = Math.max(...temps).toFixed(1)+'<span>°C</span>';
 document.getElementById('rawMsg').textContent = temps.join(';');
 
-// tooltip default
-document.getElementById('tipTime').textContent = '23:30';
-document.getElementById('tipVal').textContent = temps[temps.length-1].toFixed(1);
-document.getElementById('tipUnit').textContent = '°C';
+function getLabel(i) {
+  const h = Math.floor(i/2).toString().padStart(2,'0');
+  const m = i%2===0?'00':'30';
+  return h+':'+m;
+}
 
-// interaction
-const svgWrap = document.getElementById('svgWrap');
+function updateTooltip(i) {
+  document.getElementById('tipTime').textContent = getLabel(i);
+  document.getElementById('tipVal').textContent = temps[i].toFixed(1);
+  document.getElementById('tipUnit').textContent = '°C';
+}
 
-function getIndex(clientX) {
-  const rect = svgWrap.getBoundingClientRect();
+updateTooltip(n-1);
+
+const canvas = document.getElementById('chart');
+const dpr = window.devicePixelRatio || 1;
+
+function resize() {
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  draw(activeIdx);
+}
+
+function draw(highlightIdx) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pL = 44*dpr, pR = 12*dpr, pT = 10*dpr, pB = 30*dpr;
+
+  ctx.clearRect(0, 0, W, H);
+
+  function tx(i) { return pL + (i/(n-1))*(W-pL-pR); }
+  function ty(v) { return pT + (1-(v-minT)/(maxT-minT))*(H-pT-pB); }
+
+  const fs = 10*dpr;
+  ctx.font = fs+'px -apple-system,sans-serif';
+
+  // grid y
+  [16,18,20,22,24,26].forEach(gt => {
+    const y = ty(gt);
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pL, y); ctx.lineTo(W-pR, y); ctx.stroke();
+    ctx.fillStyle = '#555';
+    ctx.textAlign = 'right';
+    ctx.fillText(gt+'°', pL-4*dpr, y+4*dpr);
+  });
+
+  // grid x
+  for (let i = 0; i < n; i+=8) {
+    const x = tx(i);
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, pT); ctx.lineTo(x, H-pB); ctx.stroke();
+    ctx.fillStyle = '#555';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.floor(i/2).toString().padStart(2,'0')+':00', x, H-pB+14*dpr);
+  }
+
+  // fill
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(temps[0]));
+  temps.forEach((v,i) => ctx.lineTo(tx(i), ty(v)));
+  ctx.lineTo(tx(n-1), H-pB);
+  ctx.lineTo(tx(0), H-pB);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(55,138,221,0.09)';
+  ctx.fill();
+
+  // line
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(temps[0]));
+  temps.forEach((v,i) => ctx.lineTo(tx(i), ty(v)));
+  ctx.strokeStyle = '#378ADD';
+  ctx.lineWidth = 2*dpr;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // dots
+  temps.forEach((v,i) => {
+    ctx.beginPath();
+    ctx.arc(tx(i), ty(v), 2*dpr, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(55,138,221,0.6)';
+    ctx.fill();
+  });
+
+  // crosshair
+  if (highlightIdx !== null) {
+    const x = tx(highlightIdx);
+    const y = ty(temps[highlightIdx]);
+
+    // vertical line
+    ctx.beginPath();
+    ctx.moveTo(x, pT);
+    ctx.lineTo(x, H-pB);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1*dpr;
+    ctx.setLineDash([4*dpr, 4*dpr]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // highlight dot
+    ctx.beginPath();
+    ctx.arc(x, y, 5*dpr, 0, Math.PI*2);
+    ctx.fillStyle = '#378ADD';
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2*dpr;
+    ctx.stroke();
+  }
+}
+
+function getIdxFromX(clientX) {
+  const rect = canvas.getBoundingClientRect();
   const relX = clientX - rect.left;
-  const svgX = (relX / rect.width) * W;
-  const frac = (svgX - padL) / (W - padL - padR);
+  const pLcss = 44, pRcss = 12;
+  const frac = (relX - pLcss) / (rect.width - pLcss - pRcss);
   const idx = Math.round(frac * (n-1));
   return Math.max(0, Math.min(n-1, idx));
 }
 
-function showCrosshair(clientX) {
-  const idx = getIndex(clientX);
-  const x = tx(idx);
-  const y = ty(temps[idx]);
-  const h = Math.floor(idx/2).toString().padStart(2,'0');
-  const m = idx%2===0?'00':'30';
+canvas.addEventListener('mousemove', e => {
+  activeIdx = getIdxFromX(e.clientX);
+  updateTooltip(activeIdx);
+  draw(activeIdx);
+});
 
-  crossLine.setAttribute('x1', x);
-  crossLine.setAttribute('x2', x);
-  crossLine.setAttribute('display', '');
-  crossDot.setAttribute('cx', x);
-  crossDot.setAttribute('cy', y);
-  crossDot.setAttribute('display', '');
+canvas.addEventListener('mouseleave', () => {
+  activeIdx = n-1;
+  updateTooltip(activeIdx);
+  draw(activeIdx);
+});
 
-  document.getElementById('tipTime').textContent = h+':'+m;
-  document.getElementById('tipVal').textContent = temps[idx].toFixed(1);
-  document.getElementById('tipUnit').textContent = '°C';
-}
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  activeIdx = getIdxFromX(e.touches[0].clientX);
+  updateTooltip(activeIdx);
+  draw(activeIdx);
+}, { passive: false });
 
-function hideCrosshair() {
-  crossLine.setAttribute('display', 'none');
-  crossDot.setAttribute('display', 'none');
-  document.getElementById('tipTime').textContent = '23:30';
-  document.getElementById('tipVal').textContent = temps[temps.length-1].toFixed(1);
-  document.getElementById('tipUnit').textContent = '°C';
-}
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  activeIdx = getIdxFromX(e.touches[0].clientX);
+  updateTooltip(activeIdx);
+  draw(activeIdx);
+}, { passive: false });
 
-// mouse
-svgWrap.addEventListener('mousemove', e => showCrosshair(e.clientX));
-svgWrap.addEventListener('mouseleave', hideCrosshair);
+canvas.addEventListener('touchend', () => {
+  updateTooltip(activeIdx);
+  draw(activeIdx);
+});
 
-// touch
-svgWrap.addEventListener('touchstart', e => { e.preventDefault(); showCrosshair(e.touches[0].clientX); }, { passive: false });
-svgWrap.addEventListener('touchmove', e => { e.preventDefault(); showCrosshair(e.touches[0].clientX); }, { passive: false });
-svgWrap.addEventListener('touchend', hideCrosshair);
+window.addEventListener('resize', resize);
+resize();
 </script>
 </body>
 </html>
